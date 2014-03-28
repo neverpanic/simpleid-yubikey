@@ -1,0 +1,23 @@
+<!-- BEGIN: user_page -->
+<!-- :mode=html: $Id$ -->
+    <p>Your account can be authenticated using Yubikey authentication against the configuration below.</p>
+
+	<!-- BEGIN: configwarn -->
+	<p><strong>Your account isn't set up for Yubikey authentication. Set <code>auth_method="YUBIKEY"</code> in your identity file to enable Yubikey authentication.</strong></p>
+	<!-- END: configwarn -->
+    
+	<p>To change the configuration <a href="http://simpleid.sourceforge.net/documentation/getting-started/setting-identity/identity-files">edit your identity file</a>.</p>
+    
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Value</th>
+        </tr>
+        <!-- BEGIN: yubikey -->
+        <tr>
+            <td>{name}</td>
+            <td>{value}</td>
+        </tr>
+        <!-- END: yubikey -->
+    </table>
+<!-- END: user_page -->
