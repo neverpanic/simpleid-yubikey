@@ -5,10 +5,10 @@ possibility to authenticate using a [Yubico Yubikey][yubikey].
 
 ## Installation
 
-1. Copy `yubikey-filesystem.store.inc` and the folders `Auth` to the webroot of your SimpleID
+1. Copy `yubikey-filesystem.store.php` and the folders `Auth` to the webroot of your SimpleID
    installation. Copy `extensions/yubikey` into the `extensions` folder below the webroot of your
    SimpleID installation.
-2. Edit `config.inc` and set the `SIMPLEID_STORE` constant to `yubikey-filesystem`. Since the
+2. Edit `config.php` and set the `SIMPLEID_STORE` constant to `yubikey-filesystem`. Since the
    Yubikey filesystem store implements a superset of the stock filesystem store, your existing
    accounts should continue working.  
    Add the Yubikey extension to the comma-separated list of extensions in the `SIMPLEID_EXTENSIONS`
