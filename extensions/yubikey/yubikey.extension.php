@@ -10,6 +10,73 @@
  * @package extensions
  */
 
+require_once 'Auth/Yubico.php';
+
+/**
+ * Verifies a user who relies on a Yubico Yubikey to authenticate.
+ * @param array $test_user the user
+ * @param array $credentials the credentials supplied by the browser
+ */
+function yubikey_user_verify_credentials($test_user, $credentials) {
+	// check for required settings in the identity file
+	if (!isset($test_user['yubikey']) || !is_array($test_user['yubikey'])) {
+		log_warn('auth_method method for ' . $test_user['uid'] . ' is YUBIKEY, but the yubikey section is missing ' .
+			'from the identity file.');
+		return false;
+	}
+
+	$yubi_user = &$test_user['yubikey'];
+	if (   !isset($yubi_user['client_id'])
+		|| !isset($yubi_user['client_key'])
+		|| !isset($yubi_user['use_https'])
+		|| !isset($yubi_user['key_id'])) {
+		log_warn('auth_method for ' . $test_user['uid'] . ' is YUBIKEY, but at least one of the client_id, client_key, ' .
+			'use_https, or key_id settings are missing from the yubikey section of the identity file.');
+		return false;
+	}
+
+	// check for the yubikey OTP
+	if (!isset($credentials['pass'])) {
+		log_debug('auth_method for ' . $test_user['uid'] . ' is YUBIKEY, but no yubikey OTP was sent.');
+		return false;
+	}
+
+	// create the verification class
+	$yubi = new Auth_Yubico($yubi_user['client_id'], $yubi_user['client_key'], $yubi_user['use_https'] ? 1 : 0);
+
+	// add custom URLs if the identity files contains any (HTTP/HTTPS is determined by the 
+	// user_https parameter). The library will fall back to the official Yubico servers if this 
+	// isn't set.
+	if (isset($yubi_user['URLs']) && is_array($yubi_user['URLs'])) {
+		foreach ($yubi_user['URLs'] as $url) {
+			$yubi->addURLpart($url);
+		}
+	}
+
+	// authenticate against the verification server
+	$auth = $yubi->verify($credentials['pass']);
+	if (PEAR::isError($auth)) {
+		log_debug('authentication against yubikey server for user ' . $test_user['uid'] . ' failed.');
+		return false;
+	}
+
+	// verify that the given Yubikey is actually allowed to authenticate for this user. Don't do 
+	// this before sending the OTP to the verification server to make sure replay attacks are not 
+	// possible with the OTP given for this attempt.
+	$parts = $yubi->parsePasswordOTP($credentials['pass']);
+	if ($parts === false) {
+		log_debug('authentication for user ' . $test_user['uid'] . ' failed because the OTP doesn\'t look like one.');
+		return false;
+	}
+	if ($yubi_user['key_id'] !== $parts['prefix']) {
+		log_debug('Yubikey authentication for user ' . $test_user['uid'] . ' expects key prefix ' .
+			$yubi_user['key_id'] . ', but got ' . $parts['prefix']);
+		return false;
+	}
+
+	return true;
+}
+
 /**
  * Provides additional form items when displaying the login form
  * 
