@@ -1,3 +1,8 @@
+div.form-item label[for="edit-name"],
+div.form-item input#edit-name {
+	display: none;
+}
+
 div.form-item input.yubiKeyInput {
 	background: url('yubiright_16x16.gif') no-repeat 2px;
 	padding-left: 20px;

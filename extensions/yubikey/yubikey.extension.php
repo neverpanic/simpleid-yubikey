@@ -1,10 +1,10 @@
 <?php
 
 /**
- * 
+ *
  * Yubikey extension for the SimpleID OpenID system.
  *
- * Extends the profile page, login page and generally the display-related stuff 
+ * Extends the profile page, login page and generally the display-related stuff
  * with support for Yubikey login.
  *
  * @package extensions
@@ -13,11 +13,76 @@
 require_once 'Auth/Yubico.php';
 
 /**
+ * Finds the user name from a specified Yubikey OTP.
+ *
+ * A Yubikey OTP consists of the key ID, which has 12 characters, and the OTP,
+ * which has 32. Stripping the last 32 chars gives us the key ID, which can be
+ * found in the filesystem store.
+ *
+ * @param string $otp the Yubikey OTP of the user to load
+ * @return string the user name matching the Yubikey OTP, or NULL if no user
+ *                matched.
+ */
+function store_get_uid_from_yubikey($otp) {
+	// Safety check, bail out if the OTP is short
+	if (strlen($otp) < 12) {
+		return NULL;
+	}
+	// extract the key
+	$keyID = substr($otp, 0, 12);
+
+	// do a cache lookup first
+    $uid = cache_get('yubikey', $keyID);
+    if ($uid !== NULL) return $uid;
+
+    $r = NULL;
+
+    $dir = opendir(SIMPLEID_IDENTITIES_DIR);
+
+    while (($file = readdir($dir)) !== false) {
+        $filename = SIMPLEID_IDENTITIES_DIR . '/' . $file;
+
+		if (is_link($filename)) $filename = readlink($filename);
+        if ((filetype($filename) != "file") || (!preg_match('/^(.+)\.identity$/', $file, $matches))) continue;
+
+        $uid = $matches[1];
+        $test_user = store_user_load($uid);
+
+		if (isset($test_user['auth_method']) && $test_user['auth_method'] == 'YUBIKEY') {
+			if (isset($test_user['yubikey']) && is_array($test_user['yubikey'])) {
+				if (isset($test_user['yubikey']['key_id']) && $test_user['yubikey']['key_id'] === $keyID) {
+					// match found
+					cache_set('yubikey', $test_user['yubikey']['key_id'], $uid);
+					$r = $uid;
+					break;
+				}
+			}
+		}
+    }
+
+    closedir($dir);
+
+    return $r;
+}
+
+
+/**
  * Verifies a user who relies on a Yubico Yubikey to authenticate.
  * @param string $uid the name of the user to verify
  * @param array $credentials the credentials supplied by the browser
  */
 function yubikey_user_verify_credentials($uid, $credentials) {
+	// check for the yubikey OTP
+	if (!isset($credentials['pass'])) {
+		return false;
+	}
+
+	$uid = store_get_uid_from_yubikey($credentials['pass']);
+	if ($uid === NULL) {
+		log_warn('No yubikey match found');
+		return false;
+	}
+
 	$test_user = user_load($uid);
 
 	// check for required settings in the identity file
@@ -46,8 +111,8 @@ function yubikey_user_verify_credentials($uid, $credentials) {
 	// create the verification class
 	$yubi = new Auth_Yubico($yubi_user['client_id'], $yubi_user['client_key'], $yubi_user['use_https'] ? 1 : 0);
 
-	// add custom URLs if the identity files contains any (HTTP/HTTPS is determined by the 
-	// user_https parameter). The library will fall back to the official Yubico servers if this 
+	// add custom URLs if the identity files contains any (HTTP/HTTPS is determined by the
+	// user_https parameter). The library will fall back to the official Yubico servers if this
 	// isn't set.
 	if (isset($yubi_user['URLs']) && is_array($yubi_user['URLs'])) {
 		foreach ($yubi_user['URLs'] as $url) {
@@ -62,8 +127,8 @@ function yubikey_user_verify_credentials($uid, $credentials) {
 		return false;
 	}
 
-	// verify that the given Yubikey is actually allowed to authenticate for this user. Don't do 
-	// this before sending the OTP to the verification server to make sure replay attacks are not 
+	// verify that the given Yubikey is actually allowed to authenticate for this user. Don't do
+	// this before sending the OTP to the verification server to make sure replay attacks are not
 	// possible with the OTP given for this attempt.
 	$parts = $yubi->parsePasswordOTP($credentials['pass']);
 	if ($parts === false) {
@@ -76,12 +141,17 @@ function yubikey_user_verify_credentials($uid, $credentials) {
 		return false;
 	}
 
+	// Warning: The rest of the login process continues to use $_POST['name']
+	// as the UID. Since we set it to a bogus value, restore it to the expected
+	// UID here.
+	$_POST['name'] = $uid;
+
 	return true;
 }
 
 /**
  * Provides additional form items when displaying the login form
- * 
+ *
  * @param string $destination the SimpleID location to which the user is directed
  * if login is successful
  * @param string $state the current SimpleID state, if required by the location
