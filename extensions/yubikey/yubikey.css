@@ -1,12 +1,5 @@
-.yubiKeyInput {
-	background: url('yubiright_16x16.gif') no-repeat 2px 1px;
+div.form-item input.yubiKeyInput {
+	background: url('yubiright_16x16.gif') no-repeat 2px;
 	padding-left: 20px;
-}
-
-.dialog-page .form-text {
-	height: 20px;
-	border: 1px solid #999;
-	box-sizing: border-box;
-	-moz-box-sizing: border-box;
-	-webkit-box-sizing: border-box;
+	width: calc(100% - 20px + 0.5em);
 }
