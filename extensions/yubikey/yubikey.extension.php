@@ -14,10 +14,12 @@ require_once 'Auth/Yubico.php';
 
 /**
  * Verifies a user who relies on a Yubico Yubikey to authenticate.
- * @param array $test_user the user
+ * @param string $uid the name of the user to verify
  * @param array $credentials the credentials supplied by the browser
  */
-function yubikey_user_verify_credentials($test_user, $credentials) {
+function yubikey_user_verify_credentials($uid, $credentials) {
+	$test_user = user_load($uid);
+
 	// check for required settings in the identity file
 	if (!isset($test_user['yubikey']) || !is_array($test_user['yubikey'])) {
 		log_warn('auth_method method for ' . $test_user['uid'] . ' is YUBIKEY, but the yubikey section is missing ' .
