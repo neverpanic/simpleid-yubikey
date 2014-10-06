@@ -5,15 +5,10 @@ possibility to authenticate using a [Yubico Yubikey][yubikey].
 
 ## Installation
 
-1. Copy `yubikey-filesystem.store.php` and the folders `Auth` to the webroot of your SimpleID
-   installation. Copy `extensions/yubikey` into the `extensions` folder below the webroot of your
-   SimpleID installation.
-2. Edit `config.php` and set the `SIMPLEID_STORE` constant to `yubikey-filesystem`. Since the
-   Yubikey filesystem store implements a superset of the stock filesystem store, your existing
-   accounts should continue working.  
-   Add the Yubikey extension to the comma-separated list of extensions in the `SIMPLEID_EXTENSIONS`
-   constant. The extension only affects the presentation. Authentication will work without it, but
-   you won't see any indication of it.
+1. Copy `extensions/yubikey` into the `extensions` folder below the webroot of your SimpleID
+   installation.
+2. Edit `config.php` and add the Yubikey extension to the comma-separated list of extensions in the
+   `SIMPLEID_EXTENSIONS` constant.
 3. Edit your identities and add the required information for Yubikey authentication. See the
    configuration section for all possible values and their meaning.
 
@@ -22,9 +17,10 @@ possibility to authenticate using a [Yubico Yubikey][yubikey].
 The following variables from identity pages have an effect on the Yubikey authentication store:
 
  - `auth_method`: This option controls whether a user can authenticate using a Yubikey or using the
-   default password-based method. The default is to use password-based authentication for backwards
-   compatibility. Possible values are `STATIC` (password-based) and `YUBIKEY` to use the Yubikey for
-   authentication. Choosing Yubikey authentication requires a few keys in the `yubikey` section.
+   default password-based method. Since this extension hides the username field, you will probably
+   want to set this to `YUBIKEY` for all your users. Note that Yubikey authentication will only be
+   attempted with accounts that have `auth_method` set to `YUBIKEY`. Choosing Yubikey authentication
+   requires a few keys in the `yubikey` section.
 
 The following options in the `[yubikey]` identity file section control the authentication using
 Yubikeys:
