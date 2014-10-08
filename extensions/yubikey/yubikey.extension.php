@@ -32,21 +32,21 @@ function store_get_uid_from_yubikey($otp) {
 	$keyID = substr($otp, 0, 12);
 
 	// do a cache lookup first
-    $uid = cache_get('yubikey', $keyID);
-    if ($uid !== NULL) return $uid;
+	$uid = cache_get('yubikey', $keyID);
+	if ($uid !== NULL) return $uid;
 
-    $r = NULL;
+	$r = NULL;
 
-    $dir = opendir(SIMPLEID_IDENTITIES_DIR);
+	$dir = opendir(SIMPLEID_IDENTITIES_DIR);
 
-    while (($file = readdir($dir)) !== false) {
-        $filename = SIMPLEID_IDENTITIES_DIR . '/' . $file;
+	while (($file = readdir($dir)) !== false) {
+		$filename = SIMPLEID_IDENTITIES_DIR . '/' . $file;
 
 		if (is_link($filename)) $filename = readlink($filename);
-        if ((filetype($filename) != "file") || (!preg_match('/^(.+)\.identity$/', $file, $matches))) continue;
+		if ((filetype($filename) != "file") || (!preg_match('/^(.+)\.identity$/', $file, $matches))) continue;
 
-        $uid = $matches[1];
-        $test_user = store_user_load($uid);
+		$uid = $matches[1];
+		$test_user = store_user_load($uid);
 
 		if (isset($test_user['auth_method']) && $test_user['auth_method'] == 'YUBIKEY') {
 			if (isset($test_user['yubikey']) && is_array($test_user['yubikey'])) {
@@ -58,11 +58,11 @@ function store_get_uid_from_yubikey($otp) {
 				}
 			}
 		}
-    }
+	}
 
-    closedir($dir);
+	closedir($dir);
 
-    return $r;
+	return $r;
 }
 
 
