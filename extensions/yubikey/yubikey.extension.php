@@ -128,7 +128,8 @@ function yubikey_user_verify_credentials($uid, $credentials) {
 	// authenticate against the verification server
 	$auth = $yubi->verify($credentials['pass']);
 	if (PEAR::isError($auth)) {
-		log_debug('authentication against yubikey server for user ' . $test_user['uid'] . ' failed.');
+		log_debug('authentication against yubikey server for user ' . $test_user['uid'] . ' failed: ' .
+			$auth->getMessage());
 		return false;
 	}
 
