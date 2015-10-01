@@ -385,13 +385,14 @@ class Auth_Yubico
 		  } 
 		  elseif ($this->_key <> "") {
 		    /* Case 2. Verify signature first */
-		    $rows = explode("\r\n", trim($str));
 		    $response=array();
-		    while (list($key, $val) = each($rows)) {
+		    $val = strtok(trim($str), "\r\n");
+		    while ($val !== false) {
 		      /* = is also used in BASE64 encoding so we only replace the first = by # which is not used in BASE64 */
 		      $val = preg_replace('/=/', '#', $val, 1);
 		      $row = explode("#", $val);
 		      $response[$row[0]] = $row[1];
+		      $val = strtok("\r\n");
 		    }
 		    
 		    $parameters=array('nonce','otp', 'sessioncounter', 'sessionuse', 'sl', 'status', 't', 'timeout', 'timestamp');
