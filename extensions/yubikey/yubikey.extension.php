@@ -84,6 +84,11 @@ function yubikey_user_verify_credentials($uid, $credentials) {
 	}
 
 	$test_user = user_load($uid);
+	if ($test_user === NULL) {
+		log_warn('An identity corresponding to this Yubikey was found, but the user ' . $uid . ' could not be ' .
+			'loaded. Does your cache contain stale entries?');
+		return false;
+	}
 
 	// check for required settings in the identity file
 	if (!isset($test_user['yubikey']) || !is_array($test_user['yubikey'])) {
