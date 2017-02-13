@@ -57,5 +57,11 @@ URLs[]="yubikey2.example.com/wsapi/2.0/verify"
 URLs[]="yubikey3.example.com:8443/wsapi/2.0/verify"
 ```
 
+## Changelog
+
+### 1.0
+
+Support multiple Yubikeys per account. (#2)
+
 [simpleid]: http://simpleid.org
 [yubikey]: https://www.yubico.com/products/yubikey-hardware/
