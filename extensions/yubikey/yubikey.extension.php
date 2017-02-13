@@ -50,7 +50,7 @@ function store_get_uid_from_yubikey($otp) {
 
 		if (isset($test_user['auth_method']) && $test_user['auth_method'] == 'YUBIKEY') {
 			if (isset($test_user['yubikey']) && is_array($test_user['yubikey'])) {
-				if(isset($test_user['yubikey']['key_id']) && !is_array($test_user['yubikey']['key_id'])) {
+				if (isset($test_user['yubikey']['key_id']) && !is_array($test_user['yubikey']['key_id'])) {
 					$test_user['yubikey']['key_id'] = [$test_user['yubikey']['key_id']];
 				}
 				if (isset($test_user['yubikey']['key_id']) && in_array($keyID, $test_user['yubikey']['key_id'], true)) {
