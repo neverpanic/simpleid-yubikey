@@ -50,9 +50,12 @@ function store_get_uid_from_yubikey($otp) {
 
 		if (isset($test_user['auth_method']) && $test_user['auth_method'] == 'YUBIKEY') {
 			if (isset($test_user['yubikey']) && is_array($test_user['yubikey'])) {
-				if (isset($test_user['yubikey']['key_id']) && $test_user['yubikey']['key_id'] === $keyID) {
+				if(isset($test_user['yubikey']['key_id']) && !is_array($test_user['yubikey']['key_id'])) {
+					$test_user['yubikey']['key_id'] = [$test_user['yubikey']['key_id']];
+				}
+				if (isset($test_user['yubikey']['key_id']) && in_array($keyID, $test_user['yubikey']['key_id'], true)) {
 					// match found
-					cache_set('yubikey', $test_user['yubikey']['key_id'], $uid);
+					cache_set('yubikey', $keyID, $uid);
 					$r = $uid;
 					break;
 				}
@@ -141,9 +144,12 @@ function yubikey_user_verify_credentials($uid, $credentials) {
 		log_debug('authentication for user ' . $test_user['uid'] . ' failed because the OTP doesn\'t look like one.');
 		return false;
 	}
-	if ($yubi_user['key_id'] !== $parts['prefix']) {
+	if (!is_array($yubi_user['key_id'])) {
+		$yubi_user['key_id'] = [$yubi_user['key_id']];
+	}
+	if (!in_array($parts['prefix'], $yubi_user['key_id'],true)) {
 		log_debug('Yubikey authentication for user ' . $test_user['uid'] . ' expects key prefix ' .
-			$yubi_user['key_id'] . ', but got ' . $parts['prefix']);
+			implode(", ", $yubi_user['key_id']) . ', but got ' . $parts['prefix']);
 		return false;
 	}
 
